@@ -32,6 +32,28 @@
             transform: translateX(-300px);
         }
 
+        /* Efecto de página caída */
+        .container.fallen {
+            transform: rotate(15deg) translateY(100px);
+            opacity: 0.2;
+            filter: blur(2px);
+            pointer-events: none;
+            transition: all 1s ease;
+        }
+
+        .fallen .header {
+            transform: rotate(-5deg) translateY(-50px);
+        }
+
+        .fallen .categories-tabs {
+            transform: rotate(3deg) translateX(20px);
+        }
+
+        .fallen .product-card {
+            transform: rotate(calc(var(--rotation) * 1deg)) translateY(calc(var(--offset) * 1px));
+            opacity: 0.7;
+        }
+
         .header {
             background: linear-gradient(45deg, #ff6b6b, #ee5a24);
             color: white;
@@ -40,6 +62,7 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             position: relative;
             z-index: 10;
+            transition: transform 1s ease;
         }
 
         .header h1 {
@@ -100,6 +123,7 @@
             top: 0;
             z-index: 5;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 1s ease;
         }
 
         .categories-tabs::-webkit-scrollbar {
@@ -156,6 +180,7 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
             transition: all 0.3s ease;
             position: relative;
+            transition: transform 1s ease, opacity 1s ease;
         }
 
         .product-card:hover {
@@ -505,6 +530,85 @@
             box-shadow: 0 8px 25px rgba(238, 90, 36, 0.5);
         }
 
+        /* Botón de reconstrucción */
+        .rebuild-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 5px 20px rgba(238, 90, 36, 0.4);
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.5s ease;
+        }
+
+        .rebuild-btn.visible {
+            opacity: 1;
+            pointer-events: all;
+            bottom: 50px;
+        }
+
+        .rebuild-btn:hover {
+            transform: translateX(-50%) translateY(-3px);
+            box-shadow: 0 8px 25px rgba(238, 90, 36, 0.5);
+        }
+
+        /* Mensaje de pedido enviado */
+        .order-sent-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            z-index: 1000;
+            max-width: 80%;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.5s ease;
+        }
+
+        .order-sent-message.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .order-sent-message i {
+            font-size: 50px;
+            color: #25d366;
+            margin-bottom: 15px;
+        }
+
+        .order-sent-message h2 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .order-sent-message p {
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+
+        .order-sent-message .btn {
+            background: #ff6b6b;
+            color: white;
+            margin: 0 auto;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .products-grid {
@@ -518,6 +622,12 @@
             .side-cart {
                 width: 250px;
                 right: -250px;
+            }
+
+            .rebuild-btn {
+                width: 80%;
+                text-align: center;
+                justify-content: center;
             }
         }
 
@@ -855,6 +965,21 @@
         <i class="fas fa-shopping-cart"></i>
     </div>
 
+    <!-- Botón de reconstrucción -->
+    <button class="rebuild-btn" id="rebuild-btn" onclick="rebuildPage()">
+        <i class="fas fa-hammer"></i> Reconstruir Página
+    </button>
+
+    <!-- Mensaje de pedido enviado -->
+    <div class="order-sent-message" id="order-sent-message">
+        <i class="fas fa-check-circle"></i>
+        <h2>¡Pedido Enviado!</h2>
+        <p>Tu pedido ha sido enviado por WhatsApp. Pronto nos pondremos en contacto contigo.</p>
+        <button class="btn" onclick="hideOrderMessage()">
+            <i class="fas fa-utensils"></i> Seguir Pidiendo
+        </button>
+    </div>
+
     <script>
         let cart = {};
         let quantities = {};
@@ -1064,10 +1189,59 @@
             message += '¡Gracias por preferir Wings Express! 🙌';
             
             // Cambia este número por el tuyo
-            const phoneNumber = '5215512345678'; // Formato: 52 + código de área + número
+            const phoneNumber = '5219633870587'; // Formato: 52 + código de área + número
             const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
             
-            window.open(whatsappURL, '_blank');
+            // Mostrar mensaje de pedido enviado
+            document.getElementById('order-sent-message').classList.add('visible');
+            
+            // Hacer que la página "se caiga"
+            makePageFall();
+            
+            // Abrir WhatsApp en una nueva pestaña
+            setTimeout(() => {
+                window.open(whatsappURL, '_blank');
+            }, 500);
+        }
+
+        function makePageFall() {
+            const container = document.getElementById('main-container');
+            container.classList.add('fallen');
+            
+            // Aplicar efectos aleatorios a los productos
+            const productCards = document.querySelectorAll('.product-card');
+            productCards.forEach(card => {
+                const rotation = (Math.random() * 20) - 10; // Entre -10 y 10 grados
+                const offset = Math.random() * 100 + 50; // Entre 50 y 150px
+                card.style.setProperty('--rotation', rotation);
+                card.style.setProperty('--offset', offset);
+            });
+            
+            // Mostrar botón de reconstrucción
+            document.getElementById('rebuild-btn').classList.add('visible');
+            
+            // Ocultar el carrito si está abierto
+            document.getElementById('side-cart').classList.remove('open');
+            container.classList.remove('cart-open');
+        }
+
+        function rebuildPage() {
+            const container = document.getElementById('main-container');
+            container.classList.remove('fallen');
+            
+            // Ocultar botón de reconstrucción
+            document.getElementById('rebuild-btn').classList.remove('visible');
+            
+            // Restablecer estilos de los productos
+            const productCards = document.querySelectorAll('.product-card');
+            productCards.forEach(card => {
+                card.style.removeProperty('--rotation');
+                card.style.removeProperty('--offset');
+            });
+        }
+
+        function hideOrderMessage() {
+            document.getElementById('order-sent-message').classList.remove('visible');
         }
 
         // Show/hide FAB based on scroll
